@@ -58,6 +58,8 @@ values."
      ;; https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Blang/javascript
      ;; Will need to follow install instructions.
      ;; e.g npm install -g tern && npm install -g js-beutify && npm install -g eslint
+
+     ;; I believe this also requires you install tern. 
      javascript
 
      ;; react: http://develop.spacemacs.org/layers/+frameworks/react/README.html
