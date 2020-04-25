@@ -98,6 +98,7 @@ This function should only modify configuration layer settings."
      (shell :variables
             shell-default-height 30
             shell-default-position 'bottom)
+
      spell-checking
      syntax-checking
      haskell
@@ -216,6 +217,11 @@ It should only modify the values of Spacemacs settings."
    ;; section of the documentation for details on available variables.
    ;; (default 'vim)
    dotspacemacs-editing-style 'vim
+
+   ;; If non-nil show the version string in the Spacemacs buffer. It will
+   ;; appear as (spacemacs version)@(emacs version)
+   ;; (default t)
+   dotspacemacs-startup-buffer-show-version t
 
    ;; Specify the startup banner. Default value is `official', it displays
    ;; the official spacemacs logo. An integer value is the index of text
@@ -541,14 +547,15 @@ you should place you code here."
   
   ;; cant do this because apprently intlliji doesnt support that
   ;; off for work
-  (setq clojure-indent-style 'align-arguments)
+  ;;(setq clojure-indent-style 'align-arguments)
 
   ;; not sure what always indent means...
   (setq clojure-indent-style 'always-indent)
 
   ;; This indents on block changes (possible causing to much formatting!)
   ;; off for work
-  (add-hook 'clojure-mode-hook #'aggressive-indent-mode)
+  ;;(add-hook 'clojure-mode-hook #'aggressive-indent-mode)
+
   (setq clojure-align-forms-automatically t)
 
 
