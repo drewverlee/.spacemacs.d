@@ -47,7 +47,10 @@ This function should only modify configuration layer settings."
               clojure-enable-clj-refactor t
               ;; Need very recent version of spacemacs to enable as a linter
               ;; otherwise see https://github.com/borkdude/clj-kondo/blob/master/doc/editor-integration.md#spacemacs
-              clojure-enable-linters 'clj-kondo)
+
+              ;; 
+              ;; https://github.com/candid82/joker#installation
+              clojure-enable-linters '(clj-kondo joker) )
 
      ;;add the joker linter for real time linting in clojure
      ;; requires the local install of joker tools
