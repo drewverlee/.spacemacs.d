@@ -556,6 +556,10 @@ you should place you code here."
   ;; End of Magit - forge configuration
   ;;
 
+  (setq history-delete-duplicates t)
+  (setq history-length 10)
+
+
   ;; --------------- Clojure -----------------
 
   ;; This makes it impossible to cut, copy, yank such that it breaks the structure.
