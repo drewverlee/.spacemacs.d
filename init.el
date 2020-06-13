@@ -545,6 +545,17 @@ This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place you code here."
 
+  ;;
+  ;; Magit - forge configuration
+  ;;
+  ;; Set the files that are searched for writing tokens
+  ;; by default ~/.authinfo will be used
+  ;; and write a token in unencrypted format
+  (setq auth-sources '("~/.authinfo.gpg"))
+  ;;
+  ;; End of Magit - forge configuration
+  ;;
+
   ;; --------------- Clojure -----------------
 
   ;; This makes it impossible to cut, copy, yank such that it breaks the structure.
