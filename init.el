@@ -50,7 +50,8 @@ This function should only modify configuration layer settings."
 
               ;; 
               ;; https://github.com/candid82/joker#installation
-              clojure-enable-linters '(clj-kondo joker) )
+
+              clojure-enable-linters 'clj-kondo)
 
      ;;add the joker linter for real time linting in clojure
      ;; requires the local install of joker tools
