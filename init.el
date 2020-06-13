@@ -96,7 +96,13 @@ This function should only modify configuration layer settings."
      better-defaults
      emacs-lisp
      markdown
-     org
+     (org :variables
+          org-enable-github-support t
+
+          ;; In order to be able to use org-reveal, download reveal.js from its homepage and set org-reveal-js to the download path, as described in the manual. Alternatively, add the following line to each .org file you want to process:
+          ;; #+REVEAL_ROOT: http://cdn.jsdelivr.net/reveal.js/3.0.0/
+          ;;org-enable-reveal-js-support t
+          )
      (shell :variables
             shell-default-height 30
             shell-default-position 'bottom)
