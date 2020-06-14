@@ -49,7 +49,7 @@ This function should only modify configuration layer settings."
               ;; otherwise see https://github.com/borkdude/clj-kondo/blob/master/doc/editor-integration.md#spacemacs
 
               ;; 
-              ;; https://github.com/candid82/joker#installation
+              ;; TODO requires installing clj Kondo
 
               clojure-enable-linters 'clj-kondo)
 
