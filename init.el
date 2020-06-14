@@ -81,6 +81,7 @@ This function should only modify configuration layer settings."
                       version-control-global-margin t)
 
      (git :variables
+          magit-diff-refine-hunk 'all
           git-magit-status-fullscreen t
           git-enable-github-support t
           git-gutter-use-fringe t)
