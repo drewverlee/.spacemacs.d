@@ -31,28 +31,99 @@ This function should only modify configuration layer settings."
 
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(shell-scripts
+   '(octave
+     csv
+     shell-scripts
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press `SPC f e R' (Vim style) or
      ;; `M-m f e R' (Emacs style) to install them.
      ;; ----------------------------------------------------------------
 
+
      (multiple-cursors :variables multiple-cursors-backend 'evil-mc)
 
      ;; ---------- Clojure ---------------------
 
      (clojure :variables
+              cider-repl-display-help-banner nil      ;; disable help banner
+              cider-pprint-fn 'fipp                   ;; fast pretty printing
+              clojure-indent-style 'align-arguments
+              clojure-align-forms-automatically t
+	      cider-result-overlay-position 'at-eol
+              cider-overlays-use-font-lock t
               clojure-enable-fancify-symbols t
               clojure-enable-clj-refactor t
+              clojure-toplevel-inside-comment-form t
+              cider-repl-buffer-size-limit 1000
               ;; Need very recent version of spacemacs to enable as a linter
               ;; otherwise see https://github.com/borkdude/clj-kondo/blob/master/doc/editor-integration.md#spacemacs
 
               ;; 
               ;; TODO requires installing clj Kondo
 
-              clojure-enable-linters 'clj-kondo)
+	      ;; This is now part of clojure-lsp
+	      ;; https://practicalli.github.io/spacemacs/install-spacemacs/clojure-lsp/configure-lsp-and-cider.html
+              ;; clojure-enable-linters 'clj-kondo
+	      )
 
+    ;;All the possible variables that can be set on the lsp layer (that have been found so far)
+
+       (lsp :variables
+            ;; Commented variables are default values in the lsp layer configuration
+
+            ;; Formatting and indentation
+            lsp-enable-on-type-formatting nil
+            ;; Set to nil to use CIDER features instead of LSP UI
+            lsp-enable-indentation nil
+            ;; lsp-enable-completion-at-point nil
+
+            ;; Buffer visual elements
+            ;; shows directory path at top of buffer
+            ;; lsp-headerline-breadcrumb-enable nil
+
+            ;; symbol highlighting - `lsp-toggle-symbol-highlight` toggles highlighting
+            ;; change made to doom-gruvbox-light theme for subtle highlighting
+            lsp-enable-symbol-highlighting t
+
+            ;; Show lint errors in the mode-bar (tested on doom-modeline)
+            ;; remove local clj-kondo binary from path  used by emacs or otherwise remove clj-kondo as clojure layer lint tool
+            ;; flycheck-clj-kondo shows all the projects open with issues.  Without that enabled in the clojure layer, only
+            ;; lint issues from the current project are shown.  It could be because I had both lsp and clojure layer clj-kondo
+            lsp-modeline--enable-diagnostics t
+
+            ;; popup documentation boxes
+            lsp-ui-doc-enable nil          ;; disable doc popups
+            lsp-ui-doc-show-with-cursor nil
+            lsp-ui-doc-show-with-mouse t
+            lsp-ui-doc-delay 2
+
+            ;; show code actions and diagnostics text as right-hand side of buffer
+            lsp-ui-sideline-enable nil
+            ;; Is this just display or disabling the actions
+            ;; lsp-modeline-code-actions-enable nil
+            ;; lsp-ui-sideline-show-diagnostics nil
+            ;; When non-nil, the symbol information overlay includes symbol name (redundant for c-modes).
+            ;; lsp-ui-sideline-show-symbol    nil
+
+            ;; show reference count for functions (assume their maybe other lenses in future)
+            lsp-lens-enable t
+
+            ;; Symbol highlighting
+            ;; lsp-enable-symbol-highlighting nil
+            ;; Do not highlight current symbol, only other matches ??  Avoids visual clashing with visual select
+            lsp-symbol-highlighting-skip-current nil
+
+            ;; add a delay to all lsp features, how much does this affect ?
+            ;; lsp-idle-delay 2
+
+                      ;; Efficient use of space in treemacs-lsp display
+            treemacs-space-between-root-nodes nil
+            ;;
+            ;; lsp-file-watch-threshold 10000
+            )
+
+     
      ;;add the joker linter for real time linting in clojure
      ;; requires the local install of joker tools
      ;;superseded and incompatible with kondo.
@@ -130,6 +201,14 @@ This function should only modify configuration layer settings."
    dotspacemacs-additional-packages '(
                                       ubuntu-theme
 
+                                      (use-package clojure-essential-ref
+                                        ;; ...
+                                        :bind (
+                                               :map cider-mode-map
+                                               ("C-h F" . clojure-essential-ref)
+                                               :map cider-repl-mode-map
+                                               ("C-h F" . clojure-essential-ref)))
+
                                       ;; -------------- Kubernetes ---------------
                                       (use-package kubernetes
                                         :ensure t
@@ -146,6 +225,12 @@ This function should only modify configuration layer settings."
                                         :diminish
                                         :hook (css-mode html-mode js-mode emacs-lisp-mode text-mode))
 
+                                     
+
+                                    (use-package evil-better-visual-line
+                                            :ensure t
+                                            :config
+                                            (evil-better-visual-line-on))
                                       )
    ;; A list of packages and/or extensions that will not be install and loaded.
    dotspacemacs-excluded-packages '()
@@ -184,7 +269,9 @@ It should only modify the values of Spacemacs settings."
    ;; when invoking Emacs 27.1 executable on the command line, for instance:
    ;;   ./emacs --dump-file=~/.emacs.d/.cache/dumps/spacemacs.pdmp
    ;; (default spacemacs.pdmp)
-   dotspacemacs-emacs-dumper-dump-file "spacemacs.pdmp"
+   dotspacemacs-emacs-dumper-dump-file (format "spacemacs-%s.pdmp" emacs-version)
+
+
 
    ;; If non-nil ELPA repositories are contacted via HTTPS whenever it's
    ;; possible. Set it to nil if you have no way to use HTTPS in your
@@ -202,6 +289,15 @@ It should only modify the values of Spacemacs settings."
    ;; performance issues due to garbage collection operations.
    ;; (default '(100000000 0.1))
    dotspacemacs-gc-cons '(100000000 0.1)
+
+   ;; Set `read-process-output-max' when startup finishes.
+   ;; This defines how much data is read from a foreign process.
+   ;; Setting this >= 1 MB should increase performance for lsp servers
+   ;; in emacs 27.
+   ;; (default (* 1024 1024))
+   dotspacemacs-read-process-output-max (* 1024 1024)
+
+
 
    ;; If non-nil then Spacelpa repository is the primary source to install
    ;; a locked version of packages. If nil then Spacemacs will install the
@@ -244,6 +340,11 @@ It should only modify the values of Spacemacs settings."
    ;; If the value is nil then no banner is displayed. (default 'official)
    dotspacemacs-startup-banner 'official
 
+   ;; The minimum delay in seconds between number key presses. (default 0.4)
+   dotspacemacs-startup-buffer-multi-digit-delay 0.4
+
+
+
    ;; List of items to show in startup buffer or an association list of
    ;; the form `(list-type . list-size)`. If nil then it is disabled.
    ;; Possible values for list-type are:
@@ -263,6 +364,16 @@ It should only modify the values of Spacemacs settings."
 
    ;; Default major mode of the scratch buffer (default `text-mode')
    dotspacemacs-scratch-mode 'text-mode
+
+   ;; If non-nil, *scratch* buffer will be persistent. Things you write down in
+   ;; *scratch* buffer will be saved and restored automatically.
+   dotspacemacs-scratch-buffer-persistent nil
+
+   ;; If non-nil, `kill-buffer' on *scratch* buffer
+   ;; will bury it instead of killing.
+   dotspacemacs-scratch-buffer-unkillable nil
+
+
 
    ;; Initial message in the scratch buffer, such as "Welcome to Spacemacs!"
    ;; (default nil)
@@ -287,8 +398,22 @@ It should only modify the values of Spacemacs settings."
                                :weight normal
                                :width normal)
 
+
+   ;; Set the theme for the Spaceline. Supported themes are `spacemacs',
+   ;; `all-the-icons', `custom', `doom', `vim-powerline' and `vanilla'. The
+   ;; first three are spaceline themes. `doom' is the doom-emacs mode-line.
+   ;; `vanilla' is default Emacs mode-line. `custom' is a user defined themes,
+   ;; refer to the DOCUMENTATION.org for more info on how to create your own
+   ;; spaceline theme. Value can be a symbol or list with additional properties.
+   ;; (default '(spacemacs :separator wave :separator-scale 1.5))
+   dotspacemacs-mode-line-theme '(spacemacs :separator wave :separator-scale 1.5)
+
+
+
    ;; The leader key (default "SPC")
    dotspacemacs-leader-key "SPC"
+   ;; The key used for Vim Ex commands (default ":")
+   dotspacemacs-ex-command-key ":"
    ;; The leader key accessible in `emacs state' and `insert state'
    ;; (default "M-m")
    dotspacemacs-emacs-leader-key "M-m"
@@ -296,8 +421,12 @@ It should only modify the values of Spacemacs settings."
    ;; pressing `<leader> m`. Set it to `nil` to disable it. (default ",")
    dotspacemacs-major-mode-leader-key ","
    ;; Major mode leader key accessible in `emacs state' and `insert state'.
-   ;; (default "C-M-m")
-   dotspacemacs-major-mode-emacs-leader-key "C-M-m"
+   ;; (default "C-M-m" for terminal mode, "<M-return>" for GUI mode).
+   ;; Thus M-RET should work as leader key in both GUI and terminal modes.
+   ;; C-M-m also should work in terminal mode, but not in GUI mode.
+   dotspacemacs-major-mode-emacs-leader-key (if window-system "<M-return>" "C-M-m")
+
+
    ;; These variables control whether separate commands are bound in the GUI to
    ;; the key pairs `C-i', `TAB' and `C-m', `RET'.
    ;; Setting it to a non-nil value, allows for separate commands under `C-i'
@@ -329,7 +458,7 @@ It should only modify the values of Spacemacs settings."
    ;; Size (in MB) above which spacemacs will prompt to open the large file
    ;; literally to avoid performance issues. Opening a file literally means that
    ;; no major mode or minor modes are active. (default is 1)
-   dotspacemacs-large-file-size 1
+   dotspacemacs-large-file-size 5
 
    ;; Location where to auto-save files. Possible values are `original' to
    ;; auto-save the file in-place, `cache' to auto-save the file to another
@@ -386,6 +515,10 @@ It should only modify the values of Spacemacs settings."
    ;; Takes effect only if `dotspacemacs-fullscreen-at-startup' is nil.
    ;; (default nil) (Emacs 24.4+ only)
    dotspacemacs-maximized-at-startup nil
+   ;; If non-nil the frame is undecorated when Emacs starts up. Combine this
+   ;; variable with `dotspacemacs-maximized-at-startup' in OSX to obtain
+   ;; borderless fullscreen. (default nil)
+   dotspacemacs-undecorated-at-startup nil
    ;; A value from the range (0..100), in increasing opacity, which describes
    ;; the transparency level of a frame when it's active or selected.
    ;; Transparency can be toggled through `toggle-transparency'. (default 90)
@@ -410,6 +543,11 @@ It should only modify the values of Spacemacs settings."
    ;; scrolling overrides the default behavior of Emacs which recenters point
    ;; when it reaches the top or bottom of the screen. (default t)
    dotspacemacs-smooth-scrolling t
+   ;; Show the scroll bar while scrolling. The auto hide time can be configured
+   ;; by setting this variable to a number. (default t)
+   dotspacemacs-scroll-bar-while-scrolling t
+
+
 
    ;; Control line numbers activation.
    ;; If set to `t', `relative' or `visual' then line numbers are enabled in all
@@ -496,7 +634,11 @@ It should only modify the values of Spacemacs settings."
    ;; (default nil - same as frame-title-format)
    dotspacemacs-icon-title-format nil
 
-   ;; Delete whitespace while saving buffer. Possible values are `all'
+   ;; Show trailing whitespace (default t)
+   dotspacemacs-show-trailing-whitespace t
+
+
+  ;; Delete whitespace while saving buffer. Possible values are `all'
    ;; to aggressively delete empty line and long sequences of whitespace,
    ;; `trailing' to delete only the whitespace at end of lines, `changed' to
    ;; delete only whitespace for changed lines or `nil' to disable cleanup.
@@ -510,9 +652,22 @@ It should only modify the values of Spacemacs settings."
    ;; (default t)
    dotspacemacs-use-clean-aindent-mode t
 
+   ;; If non-nil shift your number row to match the entered keyboard layout
+   ;; (only in insert state). Currently supported keyboard layouts are:
+   ;; `qwerty-us', `qwertz-de' and `querty-ca-fr'.
+   ;; New layouts can be added in `spacemacs-editing' layer.
+   ;; (default nil)
+   dotspacemacs-swap-number-row nil
+
    ;; Either nil or a number of seconds. If non-nil zone out after the specified
    ;; number of seconds. (default nil)
    dotspacemacs-zone-out-when-idle nil
+
+   ;; If nil the home buffer shows the full path of agenda items
+   ;; and todos. If non nil only the file name is shown.
+   dotspacemacs-home-shorten-agenda-source nil
+
+
 
    ;; Run `spacemacs/prettify-org-buffer' when
    ;; visiting README.org files of Spacemacs.
@@ -581,16 +736,16 @@ you should place you code here."
   
   ;; cant do this because apprently intlliji doesnt support that
   ;; off for work
-  (setq clojure-indent-style 'align-arguments)
+  ;;(setq clojure-indent-style 'align-arguments)
 
   ;; not sure what always indent means...
-  (setq clojure-indent-style 'always-indent)
+  ;;(setq clojure-indent-style 'always-indent)
 
   ;; This indents on block changes (possible causing to much formatting!)
   ;; off for work
   (add-hook 'clojure-mode-hook #'aggressive-indent-mode)
 
-  (setq clojure-align-forms-automatically t)
+  ;;(setq clojure-align-forms-automatically t)
 
 
   ;;---------------- prevent pressing d from acting like dd ----------------
@@ -601,6 +756,200 @@ you should place you code here."
       (abort-recursive-edit)))
 
   (add-hook 'mouse-leave-buffer-hook 'stop-using-minibuffer)
+
+  ;;; ---------- datomic start
+  ;; re https://raw.githubusercontent.com/dakra/datomic.el/master/datomic.el
+
+
+
+
+;;; datomic.el --- Utility functions for working with Datomic projects  -*- lexical-binding: t -*-
+
+;; Copyright (c) 2019-2020 Daniel Kraus <daniel@kraus.my>
+
+;; Author: Daniel Kraus <daniel@kraus.my>
+;; URL: https://github.com/dakra/datomic.el
+;; Keywords: clojure, datomic, ions, convenience, tools, processes
+;; Version: 0.1
+;; Package-Requires: ((emacs "25.2") (async "1.9") (parseedn "0.1") (projectile "2.0"))
+
+;; This file is NOT part of GNU Emacs.
+
+;;; License:
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;;
+;; `datomic.el' provides utilities for working with the Datomic.
+
+;;; Code:
+
+(require 'async)
+(require 'compile)
+(require 'parseedn)
+(require 'projectile)
+
+
+;;; Customization
+
+(defgroup datomic nil
+  "Datomic utilities"
+  :prefix "datomic-"
+  :group 'tools)
+
+(defcustom datomic-ion-auto-deploy t
+  "Whether or not to automatically deploy after a Ion push."
+  :type 'boolean)
+
+(defcustom datomic-ion-auto-check-status t
+  "Whether or not to automatically poll the status after a Ion deploy."
+  :type 'boolean)
+
+(defcustom datomic-access-program "datomic-access"
+  "Path to the datomic-access bash script."
+  :type 'file)
+
+(defcustom datomic-analytics-program "datomic-analytics"
+  "Path to the datomic-analytics bash script."
+  :type 'file)
+
+(defcustom datomic-gateway-program "datomic-gateway"
+  "Path to the datomic-gateway bash script."
+  :type 'file)
+
+(defcustom datomic-systems nil
+  "List of datomic system names."
+  :type '(repeat string)
+  :safe (lambda (value)
+          (and (listp value)
+               (cl-every 'stringp value))))
+
+
+;;; Variables
+
+(defvar datomic-ion-deploy-group)
+(defvar datomic-ion-last-execution-arn)
+(defvar datomic-ion-last-rev)
+
+
+;;; Functions
+
+(defun datomic--read-system ()
+  "Read Datomic system name from user."
+  (if (and (car datomic-systems) (not (cdr datomic-systems)))
+      (car datomic-systems)
+    (if (not (car datomic-systems))
+        (read-string "System name: ")
+      (completing-read "System name: " datomic-systems))))
+
+;; FIXME: -p aws-profile and -r aws-region --port port
+;;;###autoload
+(defun datomic-access-client (system)
+  "Start the datomic-access client tunnel to SYSTEM."
+  (interactive (list (datomic--read-system)))
+  (let ((cmd (concat datomic-access-program " client " system))
+        (name-fn (lambda (_mode) (concat "*" (file-name-base datomic-access-program) " client " system "*"))))
+    (compilation-start cmd nil name-fn)))
+
+
+;;;###autoload
+(defun datomic-ion-push ()
+  "Push the current project Datomic Ion."
+  (interactive)
+  (let* ((default-directory (projectile-project-root))
+         (name "ion push")
+         (program "clojure")
+         (args '("-A:dev" "-m" "datomic.ion.dev" "{:op :push}"))
+         (finish-func (lambda (proc)
+                        (save-excursion
+                          (with-current-buffer
+                              (process-buffer proc))
+                          (goto-char (point-min))
+                          (kill-line 3)
+                          (let* ((edn (car (parseedn-read)))
+                                 (group (car (gethash ':deploy-groups edn)))
+                                 (rev (gethash ':rev edn)))
+                            (setq datomic-ion-deploy-group group)
+                            (setq datomic-ion-last-rev rev)
+                            (when (or datomic-ion-auto-deploy
+                                      (yes-or-no-p
+                                       (format "Deploy %s revision '%s' t group %s? "
+                                               (projectile-project-name) rev group)))
+                              (datomic-ion-deploy group rev)))))))
+    (apply #'async-start-process name program finish-func args)))
+
+
+(defun datomic-ion-deploy (&optional group rev)
+  "Deploy the last pushed Datomic Ion of the current project.
+Optional use system GROUP and revision REV for deployment."
+  (interactive)
+  (when (or (and group rev)
+            (yes-or-no-p
+             (format "Deploy %s revision '%s' to group %s? "
+                     (projectile-project-name) datomic-ion-last-rev datomic-ion-deploy-group)))
+    (let* ((default-directory (projectile-project-root))
+           (name "ion deploy")
+           (program "clojure")
+           (args `("-A:dev" "-m" "datomic.ion.dev"
+                   ,(format "{:op :deploy, :group %s, :rev \"%s\"}"
+                            datomic-ion-deploy-group datomic-ion-last-rev)))
+           (finish-func (lambda (proc)
+                          (save-excursion
+                            (with-current-buffer
+                                (process-buffer proc))
+                            (goto-char (point-min))
+                            (let* ((edn (car (parseedn-read)))
+                                   (arn (gethash ':execution-arn edn)))
+                              (setq datomic-ion-last-execution-arn arn)
+                              (when datomic-ion-auto-check-status
+                                (datomic-ion-status arn)))))))
+      (apply #'async-start-process name program finish-func args))))
+
+(defun datomic-ion-status (&optional arn)
+  "Get the status of the last Datomic Ion deploy.
+Optinally specify execution ARN."
+  (interactive)
+  (let* ((default-directory (projectile-project-root))
+         (name "ion deploy")
+         (program "clojure")
+         (args `("-A:dev" "-m" "datomic.ion.dev"
+                 ,(format "{:op :deploy-status, :execution-arn %s}"
+                          (or arn datomic-ion-last-execution-arn))))
+         (finish-func (lambda (proc)
+                        (save-excursion
+                          (with-current-buffer
+                              (process-buffer proc))
+                          (goto-char (point-min))
+                          (let* ((edn (car (parseedn-read)))
+                                 (status (gethash ':deploy-status edn))
+                                 (code-status (gethash ':code-deploy-status edn)))
+                            (if (and (or (string= status "RUNNING") (string= code-status "RUNNING"))
+                                     (or datomic-ion-auto-check-status
+                                         (yes-or-no-p "Deploy still running. Check status again? ")))
+                                (datomic-ion-status)
+                              (message "Deploy status: %s - Code Deploy status: %s"
+                                       status code-status)))))))
+    (apply #'async-start-process name program finish-func args)))
+
+;; (provide 'datomic)
+;;; datomic.el ends hereo
+
+
+
+
+  ;;; ---------- datomic end
 
 )
 
@@ -616,20 +965,35 @@ This function is called at the very end of Spacemacs initialization."
  ;; If there is more than one, they won't work right.
  '(cider-shadow-cljs-global-options "")
  '(cider-shadow-default-options ":app")
- '(org-agenda-files (quote ("~/Personal/test.org")))
+ '(evil-want-Y-yank-to-eol t)
+ '(org-agenda-files '("~/Personal/test.org"))
  '(package-selected-packages
-   (quote
-    (insert-shebang helm-gtags ggtags flycheck-bashate fish-mode counsel-gtags counsel swiper ivy company-shell orgit magit-gitflow magit-popup magit-gh-pulls github-search github-clone git-timemachine git-gutter-fringe+ git-gutter+ evil-magit magit git-commit with-editor yapfify yaml-mode xterm-color ws-butler winum which-key web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package unfill ubuntu-theme toc-org tagedit sql-indent spaceline powerline smeargle slim-mode shell-pop scss-mode sass-mode restart-emacs rainbow-mode rainbow-identifiers rainbow-delimiters pyvenv pytest pyenv-mode py-isort pug-mode popwin pip-requirements persp-mode pcre2el paradox org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-plus-contrib org-mime org-download org-bullets open-junk-file neotree mwim multi-term move-text mmm-mode markdown-toc markdown-mode macrostep lorem-ipsum livid-mode skewer-mode simple-httpd live-py-mode linum-relative link-hint json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc intero indent-guide hy-mode dash-functional hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-pydoc helm-projectile projectile helm-mode-manager helm-make helm-hoogle helm-gitignore request helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag haskell-snippets haml-mode google-translate golden-ratio gnuplot gitignore-mode github-browse-file gitconfig-mode gitattributes-mode git-messenger git-link git-gutter-fringe fringe-helper git-gutter gist gh marshal logito pcache ht gh-md fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip flycheck-haskell flycheck flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit transient evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eshell-z eshell-prompt-extras esh-help emoji-cheat-sheet-plus emmet-mode elisp-slime-nav dumb-jump diminish diff-hl define-word cython-mode company-web web-completion-data company-statistics company-quickhelp pos-tip company-ghci company-ghc ghc haskell-mode company-emoji company-cabal company-anaconda company command-log-mode column-enforce-mode color-identifiers-mode coffee-mode cmm-mode clojure-snippets clj-refactor hydra inflections multiple-cursors paredit lv clean-aindent-mode cider-eval-sexp-fu eval-sexp-fu cider sesman spinner queue pkg-info parseedn clojure-mode parseclj a epl bind-map bind-key auto-yasnippet yasnippet auto-highlight-symbol auto-dictionary auto-compile packed anaconda-mode pythonic f dash s aggressive-indent adoc-mode markup-faces adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core async ac-ispell auto-complete popup)))
+   '(evil-better-visual-line helm-gtags ggtags counsel-gtags counsel swiper ivy clojure-essential-ref ox-gfm insert-shebang fish-mode company-shell orgit magit-gitflow magit-popup magit-gh-pulls github-search github-clone git-timemachine git-gutter-fringe+ git-gutter+ evil-magit magit git-commit with-editor yapfify yaml-mode xterm-color ws-butler winum which-key web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package unfill ubuntu-theme toc-org tagedit sql-indent spaceline powerline smeargle slim-mode shell-pop scss-mode sass-mode restart-emacs rainbow-mode rainbow-identifiers rainbow-delimiters pyvenv pytest pyenv-mode py-isort pug-mode popwin pip-requirements persp-mode pcre2el paradox org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-plus-contrib org-mime org-download org-bullets open-junk-file neotree mwim multi-term move-text mmm-mode markdown-toc markdown-mode macrostep lorem-ipsum livid-mode skewer-mode simple-httpd live-py-mode linum-relative link-hint json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc intero indent-guide hy-mode dash-functional hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-pydoc helm-projectile projectile helm-mode-manager helm-make helm-hoogle helm-gitignore request helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag haskell-snippets haml-mode google-translate golden-ratio gnuplot gitignore-mode github-browse-file gitconfig-mode gitattributes-mode git-messenger git-link git-gutter-fringe fringe-helper git-gutter gist gh marshal logito pcache ht gh-md fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip flycheck-haskell flycheck flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit transient evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eshell-z eshell-prompt-extras esh-help emoji-cheat-sheet-plus emmet-mode elisp-slime-nav dumb-jump diminish diff-hl define-word cython-mode company-web web-completion-data company-statistics company-quickhelp pos-tip company-ghci company-ghc ghc haskell-mode company-emoji company-cabal company-anaconda company command-log-mode column-enforce-mode color-identifiers-mode coffee-mode cmm-mode clojure-snippets clj-refactor hydra inflections multiple-cursors paredit lv clean-aindent-mode cider-eval-sexp-fu eval-sexp-fu cider sesman spinner queue pkg-info parseedn clojure-mode parseclj a epl bind-map bind-key auto-yasnippet yasnippet auto-highlight-symbol auto-dictionary auto-compile packed anaconda-mode pythonic f dash s aggressive-indent adoc-mode markup-faces adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core async ac-ispell auto-complete popup))
  '(paradox-github-token t)
  '(safe-local-variable-values
-   (quote
-    ((cider-lein-global-options . shadow)
+   '((cider-clojure-cli-aliases . "A:ion-dev")
+     (cider-clojure-cli-alases . "A:ion-dev")
+     (cider-shadow-watched-builds "app")
+     (cider-clojure-cli-aliases . "-A:shadow:deploy")
+     (cider-preferred-build-tool . shadow-cljs)
+     (cider-shadow-default-options . "app")
+     (cider-preferred-build-tool . clojure-cli)
+     (cider-clojure-cli-global-options . "-A:dev:cljs")
+     (eval define-clojure-indent
+           (assoc 0)
+           (ex-info 0))
+     (eval progn
+           (make-variable-buffer-local 'cider-jack-in-nrepl-middlewares)
+           (add-to-list 'cider-jack-in-nrepl-middlewares "shadow.cljs.devtools.server.nrepl/middleware"))
+     (cider-repl-display-help-banner)
+     (eval cider-register-cljs-repl-type 'clojure-cli "watch app")
+     (cider-lein-global-options . shadow)
      (cider-default-clj-repl . shadow-cljs)
      (cider-shadow-default-options . "frontend")
      (cider-shadow-default-options . "<your-build-name-here>")
      (cider-default-cljs-repl . shadow)
      (javascript-backend . tern)
-     (javascript-backend . lsp)))))
+     (javascript-backend . lsp))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -643,8 +1007,7 @@ This function is called at the very end of Spacemacs initialization."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   (quote
-    (orgit magit-gitflow magit-popup magit-gh-pulls github-search github-clone git-timemachine git-gutter-fringe+ git-gutter+ evil-magit magit git-commit with-editor yapfify yaml-mode xterm-color ws-butler winum which-key web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package unfill ubuntu-theme toc-org tagedit sql-indent spaceline powerline smeargle slim-mode shell-pop scss-mode sass-mode restart-emacs rainbow-mode rainbow-identifiers rainbow-delimiters pyvenv pytest pyenv-mode py-isort pug-mode popwin pip-requirements persp-mode pcre2el paradox org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-plus-contrib org-mime org-download org-bullets open-junk-file neotree mwim multi-term move-text mmm-mode markdown-toc markdown-mode macrostep lorem-ipsum livid-mode skewer-mode simple-httpd live-py-mode linum-relative link-hint json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc intero indent-guide hy-mode dash-functional hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-pydoc helm-projectile projectile helm-mode-manager helm-make helm-hoogle helm-gitignore request helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag haskell-snippets haml-mode google-translate golden-ratio gnuplot gitignore-mode github-browse-file gitconfig-mode gitattributes-mode git-messenger git-link git-gutter-fringe fringe-helper git-gutter gist gh marshal logito pcache ht gh-md fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip flycheck-haskell flycheck flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit transient evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eshell-z eshell-prompt-extras esh-help emoji-cheat-sheet-plus emmet-mode elisp-slime-nav dumb-jump diminish diff-hl define-word cython-mode company-web web-completion-data company-statistics company-quickhelp pos-tip company-ghci company-ghc ghc haskell-mode company-emoji company-cabal company-anaconda company command-log-mode column-enforce-mode color-identifiers-mode coffee-mode cmm-mode clojure-snippets clj-refactor hydra inflections multiple-cursors paredit lv clean-aindent-mode cider-eval-sexp-fu eval-sexp-fu cider sesman spinner queue pkg-info parseedn clojure-mode parseclj a epl bind-map bind-key auto-yasnippet yasnippet auto-highlight-symbol auto-dictionary auto-compile packed anaconda-mode pythonic f dash s aggressive-indent adoc-mode markup-faces adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core async ac-ispell auto-complete popup))))
+   '(clojure-essential-ref ox-gfm insert-shebang fish-mode company-shell orgit magit-gitflow magit-popup magit-gh-pulls github-search github-clone git-timemachine git-gutter-fringe+ git-gutter+ evil-magit magit git-commit with-editor yapfify yaml-mode xterm-color ws-butler winum which-key web-mode web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package unfill ubuntu-theme toc-org tagedit sql-indent spaceline powerline smeargle slim-mode shell-pop scss-mode sass-mode restart-emacs rainbow-mode rainbow-identifiers rainbow-delimiters pyvenv pytest pyenv-mode py-isort pug-mode popwin pip-requirements persp-mode pcre2el paradox org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-plus-contrib org-mime org-download org-bullets open-junk-file neotree mwim multi-term move-text mmm-mode markdown-toc markdown-mode macrostep lorem-ipsum livid-mode skewer-mode simple-httpd live-py-mode linum-relative link-hint json-mode json-snatcher json-reformat js2-refactor js2-mode js-doc intero indent-guide hy-mode dash-functional hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers parent-mode highlight-indentation helm-themes helm-swoop helm-pydoc helm-projectile projectile helm-mode-manager helm-make helm-hoogle helm-gitignore request helm-flx helm-descbinds helm-css-scss helm-company helm-c-yasnippet helm-ag haskell-snippets haml-mode google-translate golden-ratio gnuplot gitignore-mode github-browse-file gitconfig-mode gitattributes-mode git-messenger git-link git-gutter-fringe fringe-helper git-gutter gist gh marshal logito pcache ht gh-md fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip flycheck-haskell flycheck flx-ido flx fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist highlight evil-numbers evil-nerd-commenter evil-mc evil-matchit transient evil-lisp-state smartparens evil-indent-plus evil-iedit-state iedit evil-exchange evil-escape evil-ediff evil-args evil-anzu anzu evil goto-chg undo-tree eshell-z eshell-prompt-extras esh-help emoji-cheat-sheet-plus emmet-mode elisp-slime-nav dumb-jump diminish diff-hl define-word cython-mode company-web web-completion-data company-statistics company-quickhelp pos-tip company-ghci company-ghc ghc haskell-mode company-emoji company-cabal company-anaconda company command-log-mode column-enforce-mode color-identifiers-mode coffee-mode cmm-mode clojure-snippets clj-refactor hydra inflections multiple-cursors paredit lv clean-aindent-mode cider-eval-sexp-fu eval-sexp-fu cider sesman spinner queue pkg-info parseedn clojure-mode parseclj a epl bind-map bind-key auto-yasnippet yasnippet auto-highlight-symbol auto-dictionary auto-compile packed anaconda-mode pythonic f dash s aggressive-indent adoc-mode markup-faces adaptive-wrap ace-window ace-link ace-jump-helm-line helm avy helm-core async ac-ispell auto-complete popup)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
