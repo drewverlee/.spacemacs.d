@@ -45,6 +45,8 @@ This function should only modify configuration layer settings."
      (multiple-cursors :variables multiple-cursors-backend 'evil-mc)
 
      ;; ---------- Clojure ---------------------
+	   ;; https://practicalli.github.io/spacemacs/install-spacemacs/clojure-lsp/configure-lsp-and-cider.html
+     ;; clojure-enable-linters 'clj-kondo
 
      (clojure :variables
               cider-repl-display-help-banner nil      ;; disable help banner
@@ -58,19 +60,10 @@ This function should only modify configuration layer settings."
               clojure-enable-clj-refactor t
               clojure-toplevel-inside-comment-form t
               cider-repl-buffer-size-limit 1000
-              ;; Need very recent version of spacemacs to enable as a linter
-              ;; otherwise see https://github.com/borkdude/clj-kondo/blob/master/doc/editor-integration.md#spacemacs
-
-              ;; 
-              ;; TODO requires installing clj Kondo
-
-	      ;; This is now part of clojure-lsp
-	      ;; https://practicalli.github.io/spacemacs/install-spacemacs/clojure-lsp/configure-lsp-and-cider.html
-              ;; clojure-enable-linters 'clj-kondo
 	      )
 
-    ;;All the possible variables that can be set on the lsp layer (that have been found so far)
-
+     ;; update lsp server
+     ;; sudo bash < <(curl -s https://raw.githubusercontent.com/clojure-lsp/clojure-lsp/master/install)
    ;; Language server protocol with minimal visual impact
      ;; https://practicalli.github.io/spacemacs/install-spacemacs/clojure-lsp/lsp-variables-reference.html
      (lsp :variables
@@ -124,17 +117,8 @@ This function should only modify configuration layer settings."
 
           ;; this disables showing the file path, we already know that most likely
           lsp-headerline-breadcrumb-enable nil
-
           )
 
-
-     ;;add the joker linter for real time linting in clojure
-     ;; requires the local install of joker tools
-     ;;superseded and incompatible with kondo.
-     ;;clojure-lint
-
-     ;; -------- Front end work -----------------
-     ;;
 
      ;; https://github.com/syl20bnr/spacemacs/tree/master/layers/%2Blang/javascript
      ;; Will need to follow install instructions.
@@ -146,9 +130,7 @@ This function should only modify configuration layer settings."
      ;; react: http://develop.spacemacs.org/layers/+frameworks/react/README.html
      ;; will need to follow install instructions.
      react
-
      html
-
 
      ;; --------- Version control ---------------
      (version-control :variables
